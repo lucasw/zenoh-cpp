@@ -27,6 +27,27 @@ jobs:
           cmake ../install -DCMAKE_INSTALL_PREFIX=~/local
           cmake --install .
 
+      - name: get zenoh-c
+        uses: actions/checkout@v3
+        with:
+          repository: eclipse-zenoh/zenoh-c
+          # TODO(lucasw) this commingles it with the default checkout above of zenoh-cpp
+          path: zenoh-c
+
+      - name: install zenoh-c
+        shell: bash
+        run: |
+          mkdir -p zenohc_build_install && cd zenohc_build_install
+          cmake ../zenoh-c -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/local
+          cmake --build . --target install
+
+      - name: make standalone example with zenoh-cpp as installed package
+        shell: bash
+        run: |
+          mkdir -p build_examples_standalone_findproj && cd build_examples_standalone_findproj
+          cmake ../examples/standalone -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/local
+          cmake --build . --config Release
+
       - name: make examples
         shell: bash
         run: |
@@ -46,13 +67,6 @@ jobs:
         run: |
           mkdir -p build_examples_findproj && cd build_examples_findproj
           cmake ../examples -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/local -DZENOHCXX_SOURCE=PACKAGE
-          cmake --build . --config Release
-
-      - name: make standalone example with zenoh-cpp as installed package
-        shell: bash
-        run: |
-          mkdir -p build_examples_standalone_findproj && cd build_examples_standalone_findproj
-          cmake ../examples/standalone -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=~/local -DZENOHCXX_SOURCE=PACKAGE
           cmake --build . --config Release
 
       - name: make tests
